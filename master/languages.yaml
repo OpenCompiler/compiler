@@ -1,7 +1,7 @@
 language:
   bash:
     name: "Bash"
-    docker_image: "ugwis/online-compiler:bash" 
+    docker_image: "opencompiler/compiler:bash" 
     code_file: "main.sh"
     build_cmd: 
     run_cmd: 
@@ -11,7 +11,7 @@ language:
       - "main.sh"
   c:
     name: "C"
-    docker_image: "ugwis/online-compiler:c"
+    docker_image: "opencompiler/compiler:c"
     code_file: "main.c"
     build_cmd:
     run_cmd:
@@ -19,7 +19,7 @@ language:
       - "/run.sh"
   cpp:
     name: "C++"
-    docker_image: "ugwis/online-compiler:cpp"
+    docker_image: "opencompiler/compiler:cpp"
     code_file: "main.cpp"
     build_cmd:
     run_cmd:
@@ -27,7 +27,7 @@ language:
       - "/run.sh"
   cpp11:
     name: "C++11"
-    docker_image: "ugwis/online-compiler:cpp"
+    docker_image: "opencompiler/compiler:cpp"
     code_file: "main.cpp"
     build_cmd:
     run_cmd:
@@ -35,7 +35,7 @@ language:
       - "/run.sh"
   cpp14:
     name: "C++14"
-    docker_image: "ugwis/online-compiler:cpp"
+    docker_image: "opencompiler/compiler:cpp"
     code_file: "main.cpp"
     build_cmd:
     run_cmd:
@@ -43,7 +43,7 @@ language:
       - "/run.sh"
   cpp17:
     name: "C++17"
-    docker_image: "ugwis/online-compiler:cpp"
+    docker_image: "opencompiler/compiler:cpp"
     code_file: "main.cpp"
     build_cmd:
     run_cmd:
