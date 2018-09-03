@@ -5,8 +5,12 @@ if [ ${status_code} -ne 0 ];then
 	echo "Exit Code: ${status_code}"
 	exit 0
 fi
-mkfifo stdout
-mkfifo stderr
+if [ ! -e stdout ]; then
+    mkfifo stdout
+fi
+if [ ! -e stderr ]; then
+    mkfifo stderr
+fi
 (cat < stdout) | awk '{print "stdout:"$0 > "/dev/stdout";fflush()}'&
 (cat < stderr) | awk '{print "stderr:"$0 > "/dev/stdout";fflush()}'&
 timeout 3 ./main 1> stdout 2> stderr
