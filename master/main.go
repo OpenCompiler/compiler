@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"bufio"
 	"crypto/md5"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -17,6 +19,7 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/client"
+	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/docker/go-units"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/net/context"
@@ -222,10 +225,14 @@ func main() {
 			c.String(http.StatusBadRequest, err.Error())
 		}
 	})
-	r.POST("/run", func(c *gin.Context) {
-		c.Header("Access-Control-Allow-Origin", "*")
+	r.POST("/run", gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
 		var query Run
-		if err := c.BindJSON(&query); err == nil {
+		bufbody := new(bytes.Buffer)
+		bufbody.ReadFrom(r.Body)
+		body := bufbody.Bytes()
+		if err := json.Unmarshal(body, &query); err == nil {
+			fmt.Println(query.Language)
 			// Make hash
 			fmt.Println("Make hash")
 			h := md5.New()
@@ -242,13 +249,15 @@ func main() {
 					// Save code
 					fmt.Println("Save code")
 					if err := os.MkdirAll("/tmp/compiler/"+runningHash, 0755); err != nil {
-						c.String(http.StatusInternalServerError, err.Error())
+						w.WriteHeader(http.StatusInternalServerError)
+						w.Write([]byte(err.Error()))
 						fmt.Println(err.Error())
 						return
 					}
 					fp, err := os.OpenFile("/tmp/compiler/"+runningHash+"/"+lang.Language[query.Language].CodeFile, os.O_WRONLY|os.O_CREATE, 0644)
 					if err != nil {
-						c.String(http.StatusInternalServerError, err.Error())
+						w.WriteHeader(http.StatusInternalServerError)
+						w.Write([]byte(err.Error()))
 						fmt.Println(err.Error())
 						return
 					}
@@ -256,13 +265,15 @@ func main() {
 					writer := bufio.NewWriter(fp)
 					_, err = writer.WriteString(query.Code)
 					if err != nil {
-						c.String(http.StatusInternalServerError, err.Error())
+						w.WriteHeader(http.StatusInternalServerError)
+						w.Write([]byte(err.Error()))
 						fmt.Println(err.Error())
 						return
 					}
 					writer.Flush()
 				} else {
-					c.String(http.StatusBadRequest, "Shoud /build before /run")
+					w.WriteHeader(http.StatusBadRequest)
+					w.Write([]byte("Should /build before /run"))
 				}
 			}
 
@@ -280,7 +291,7 @@ func main() {
 				AttachStderr:    true,
 				OpenStdin:       true,
 				StdinOnce:       true,
-				Tty:             true,
+				Tty:             false,
 			}, &container.HostConfig{
 				Mounts: []mount.Mount{
 					mount.Mount{
@@ -313,7 +324,8 @@ func main() {
 				AutoRemove: true,
 			}, nil, "")
 			if err != nil {
-				c.String(http.StatusInternalServerError, err.Error())
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte(err.Error()))
 				fmt.Println(err.Error())
 				return
 			}
@@ -325,19 +337,22 @@ func main() {
 			})
 			defer stdin.Close()
 			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte(err.Error()))
 				fmt.Println(err.Error())
-				c.String(http.StatusInternalServerError, err.Error())
 				return
 			}
 
-			stdout, err := cli.ContainerAttach(ctx, resp.ID, types.ContainerAttachOptions{
+			containerOutput, err := cli.ContainerAttach(ctx, resp.ID, types.ContainerAttachOptions{
 				Stream: true,
 				Stdout: true,
+				Stderr: true,
 			})
-			defer stdout.Close()
+			defer containerOutput.Close()
 			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte(err.Error()))
 				fmt.Println(err.Error())
-				c.String(http.StatusInternalServerError, err.Error())
 				return
 			}
 
@@ -345,8 +360,9 @@ func main() {
 			fmt.Println("Start container")
 			err = cli.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{})
 			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte(err.Error()))
 				fmt.Println(err.Error())
-				c.String(http.StatusInternalServerError, err.Error())
 				return
 			}
 
@@ -356,22 +372,16 @@ func main() {
 			stdin.CloseWrite()
 
 			// Flow log of Stdout
-			rd := bufio.NewReader(stdout.Reader)
-			c.Stream(func(w io.Writer) bool {
-				line, _, err := rd.ReadLine()
-				w.Write(line)
-				w.Write([]byte("\n"))
-				if err == io.EOF {
-					return false
-				} else if err != nil {
-					fmt.Println(err.Error())
-					return false
-				}
-				return true
-			})
+			_, err = stdcopy.StdCopy(w, w ,containerOutput.Reader)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte(err.Error()))
+				fmt.Println(err.Error())
+				return
+			}
 		} else {
-			c.String(http.StatusBadRequest, err.Error())
+			//c.String(http.StatusBadRequest, err.Error())
 		}
-	})
+	}))
 	r.Run()
 }
