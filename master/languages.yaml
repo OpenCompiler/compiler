@@ -5,10 +5,8 @@ language:
     code_file: "main.sh"
     build_cmd: 
     run_cmd: 
-      - "timeout"
-      - "3"
       - "bash"
-      - "main.sh"
+      - "/run.sh"
   c:
     name: "C"
     docker_image: "opencompiler/compiler:c"
