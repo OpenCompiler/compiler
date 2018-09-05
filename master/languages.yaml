@@ -95,7 +95,7 @@ language:
       - "/run.sh"
   node:
     name: "JavaScript(Node.js)"
-    docker_image: "opencompiler/iamges:javascript"
+    docker_image: "opencompiler/images:javascript"
     code_file: "main.js"
     build_cmd:
     run_cmd:
