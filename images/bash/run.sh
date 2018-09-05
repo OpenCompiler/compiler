@@ -7,7 +7,7 @@ if [ ! -e stderr ]; then
 fi
 (cat < stdout) | awk '{print "stdout:"$0 > "/dev/stdout";fflush()}'&
 (cat < stderr) | awk '{print "stderr:"$0 > "/dev/stdout";fflush()}'&
-timeout 3 bash run.sh 1> stdout 2> stderr
+timeout 3 bash ./main.sh 1> stdout 2> stderr
 status_code=$?
 rm stdout&
 rm stderr&
