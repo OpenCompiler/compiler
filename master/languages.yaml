@@ -79,15 +79,12 @@ language:
       - "main.php"
   rust:
     name: "Rust"
-    docker_image: "library/rust"
+    docker_image: "opencompiler/images:rust"
     code_file: "main.rs"
     build_cmd:
-      - "rustc"
-      - "main.rs"
     run_cmd:
-      - "timeout"
-      - "3"
-      - "./main"
+      - "bash"
+      - "/run.sh"
   golang:
     name: "Golang"
     docker_image: "library/golang"
