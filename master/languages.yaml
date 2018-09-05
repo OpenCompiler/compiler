@@ -5,10 +5,8 @@ language:
     code_file: "main.sh"
     build_cmd: 
     run_cmd: 
-      - "timeout"
-      - "3"
       - "bash"
-      - "main.sh"
+      - "/run.sh"
   c:
     name: "C"
     docker_image: "opencompiler/compiler:c"
@@ -77,34 +75,25 @@ language:
       - "main.php"
   rust:
     name: "Rust"
-    docker_image: "library/rust"
+    docker_image: "opencompiler/images:rust"
     code_file: "main.rs"
     build_cmd:
-      - "rustc"
-      - "main.rs"
     run_cmd:
-      - "timeout"
-      - "3"
-      - "./main"
+      - "bash"
+      - "/run.sh"
   golang:
     name: "Golang"
-    docker_image: "library/golang"
+    docker_image: "opencompiler/images:golang"
     code_file: "main.go"
     build_cmd:
-      - "go"
-      - "build"
-      - "main.go"
     run_cmd:
-      - "timeout"
-      - "3"
-      - "./main"
+      - "bash"
+      - "/run.sh"
   node:
     name: "JavaScript(Node.js)"
-    docker_image: "library/node"
+    docker_image: "opencompiler/images:javascript"
     code_file: "main.js"
     build_cmd:
     run_cmd:
-      - "timeout"
-      - "3"
-      - "node"
-      - "main.js"
+      - "bash"
+      - "/run.sh"
