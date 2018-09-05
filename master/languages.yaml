@@ -65,14 +65,12 @@ language:
       - "/run.sh"
   php:
     name: "PHP"
-    docker_image: "library/php"
+    docker_image: "opencompiler/images:php"
     code_file: "main.php"
     build_cmd:
     run_cmd:
-      - "timeout"
-      - "3"
-      - "php"
-      - "main.php"
+      - "bash"
+      - "/run.sh"
   rust:
     name: "Rust"
     docker_image: "opencompiler/images:rust"
