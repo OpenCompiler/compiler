@@ -1,8 +1,8 @@
 package main
 
 import (
-	"bytes"
 	"bufio"
+	"bytes"
 	"crypto/md5"
 	"encoding/hex"
 	"encoding/json"
@@ -311,8 +311,8 @@ func main() {
 						},
 						{
 							Name: "fsize",
-							Hard: 1000000,
-							Soft: 1000000,
+							Hard: 10000000,
+							Soft: 10000000,
 						},
 						{
 							Name: "core",
@@ -372,7 +372,7 @@ func main() {
 			stdin.CloseWrite()
 
 			// Flow log of Stdout
-			_, err = stdcopy.StdCopy(w, w ,containerOutput.Reader)
+			_, err = stdcopy.StdCopy(w, w, containerOutput.Reader)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte(err.Error()))
