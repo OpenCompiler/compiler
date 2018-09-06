@@ -1,7 +1,7 @@
 language:
   bash:
     name: "Bash"
-    docker_image: "opencompiler/compiler:bash" 
+    docker_image: "opencompiler/images:bash" 
     code_file: "main.sh"
     build_cmd: 
     run_cmd: 
@@ -9,7 +9,7 @@ language:
       - "/run.sh"
   c:
     name: "C"
-    docker_image: "opencompiler/compiler:c"
+    docker_image: "opencompiler/images:c"
     code_file: "main.c"
     build_cmd:
     run_cmd:
@@ -17,7 +17,7 @@ language:
       - "/run.sh"
   cpp:
     name: "C++"
-    docker_image: "opencompiler/compiler:cpp"
+    docker_image: "opencompiler/images:cpp"
     code_file: "main.cpp"
     build_cmd:
     run_cmd:
@@ -25,7 +25,7 @@ language:
       - "/run.sh"
   cpp11:
     name: "C++11"
-    docker_image: "opencompiler/compiler:cpp"
+    docker_image: "opencompiler/images:cpp"
     code_file: "main.cpp"
     build_cmd:
     run_cmd:
@@ -33,7 +33,7 @@ language:
       - "/run.sh"
   cpp14:
     name: "C++14"
-    docker_image: "opencompiler/compiler:cpp"
+    docker_image: "opencompiler/images:cpp"
     code_file: "main.cpp"
     build_cmd:
     run_cmd:
@@ -41,7 +41,7 @@ language:
       - "/run.sh"
   cpp17:
     name: "C++17"
-    docker_image: "opencompiler/compiler:cpp"
+    docker_image: "opencompiler/images:cpp"
     code_file: "main.cpp"
     build_cmd:
     run_cmd:
