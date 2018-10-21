@@ -122,22 +122,17 @@ func main() {
 		bufbody.ReadFrom(r.Body)
 		body := bufbody.Bytes()
 		if err := json.Unmarshal(body, &query); err == nil {
-			fmt.Println(query.Language)
 			// Make hash
-			fmt.Println("Make hash")
 			h := md5.New()
 			io.WriteString(h, query.Language)
 			io.WriteString(h, query.Code)
 			runningHash := hex.EncodeToString(h.Sum(nil))
-			fmt.Println("runningHash: " + runningHash)
-
 			// Check exist of source code and builded image
 			_, err = os.Stat("/tmp/compiler/" + runningHash + "/" + lang.Language[query.Language].CodeFile)
 			if err != nil {
 				// Check this language requires build command
 				if len(lang.Language[query.Language].BuildCmd) == 0 {
 					// Save code
-					fmt.Println("Save code")
 					if err := os.MkdirAll("/tmp/compiler/"+runningHash, 0755); err != nil {
 						w.WriteHeader(http.StatusInternalServerError)
 						w.Write([]byte(err.Error()))
@@ -169,8 +164,6 @@ func main() {
 
 			// Create container
 			// TODO: Limit container spec
-			fmt.Println("Create container")
-			fmt.Printf("%v\n", lang.Language[query.Language].RunCmd)
 			resp, err := cli.ContainerCreate(ctx, &container.Config{
 				Image:           lang.Language[query.Language].DockerImage,
 				WorkingDir:      "/workspace",
@@ -247,7 +240,6 @@ func main() {
 			}
 
 			// Start container
-			fmt.Println("Start container")
 			err = cli.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{})
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
@@ -257,7 +249,6 @@ func main() {
 			}
 
 			// Put to Stdin
-			fmt.Println(query.Stdin)
 			stdin.Conn.Write([]byte(query.Stdin))
 			stdin.CloseWrite()
 
