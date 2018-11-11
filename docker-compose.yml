@@ -21,6 +21,7 @@ services:
       - docker
     environment:
       - DOCKER_HOST=tcp://docker:2375
+    env_file: ./master/.env
     volumes:
         - data:/tmp
     logging:
