@@ -52,7 +52,7 @@ type Languages struct {
 }
 
 func main() {
-	tracer.Start()
+	tracer.Start(tracer.WithAnalytics(true))
 	defer tracer.Stop()
 	ctx := context.Background()
 
