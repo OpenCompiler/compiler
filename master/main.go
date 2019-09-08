@@ -23,6 +23,8 @@ import (
 	"github.com/docker/go-units"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/net/context"
+	gintrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/gin-gonic/gin"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gopkg.in/yaml.v2"
 )
 
@@ -50,6 +52,8 @@ type Languages struct {
 }
 
 func main() {
+	tracer.Start()
+	defer tracer.Stop()
 	ctx := context.Background()
 
 	// Read languges setttings
@@ -95,6 +99,7 @@ func main() {
 
 	// Start routing
 	r := gin.Default()
+	r.Use(gintrace.Middleware("OpenCompiler"))
 	r.GET("/", func(c *gin.Context) {
 		c.Header("Access-Control-Allow-Origin", "*")
 		c.String(http.StatusOK, "pong")

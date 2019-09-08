@@ -1,4 +1,4 @@
-FROM golang:1.9-alpine
+FROM golang:1.13.0-alpine
 
 RUN apk -U add git curl musl-dev gcc
 RUN curl -fsSL -o /usr/local/bin/dep https://github.com/golang/dep/releases/download/v0.3.2/dep-linux-amd64 \
