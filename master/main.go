@@ -52,7 +52,11 @@ type Languages struct {
 }
 
 func main() {
-	tracer.Start(tracer.WithAnalytics(true))
+	addr := net.JoinHostPort(
+		os.Getenv("DD_AGENT_HOST"),
+		os.Getenv("DD_TRACE_AGENT_PORT"),
+	)
+	tracer.Start(tracer.WithAddr(addr))
 	defer tracer.Stop()
 	ctx := context.Background()
 
