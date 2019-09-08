@@ -56,7 +56,7 @@ func main() {
 		os.Getenv("DD_AGENT_HOST"),
 		os.Getenv("DD_TRACE_AGENT_PORT"),
 	)
-	tracer.Start(tracer.WithAddr(addr))
+	tracer.Start(tracer.WithAgentAddr(addr))
 	defer tracer.Stop()
 	ctx := context.Background()
 
