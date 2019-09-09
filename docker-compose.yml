@@ -8,6 +8,9 @@ services:
       - data:/tmp
       - /tmp/docker/containers:/var/lib/docker/containers
       - image:/var/lib/docker
+      - sock:/var/run/docker.sock
+      - proc:/proc
+      - cgroup:/sys/fs/cgroup
     logging:
       options:
         max-size: "10m"
@@ -19,6 +22,7 @@ services:
       - 3000:8080
     links:
       - docker
+      - ddagent
     environment:
       - DOCKER_HOST=tcp://docker:2375
     env_file: ./master/.env
@@ -28,7 +32,20 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+  ddagent:
+    image: datadog/agent:latest
+    environment:
+      - DD_APM_ENABLED=true
+      - DD_APM_NON_LOCAL_TRAFFIC=true
+    env_file: ./datadog/.env
+    volumes:
+        - sock:/var/run/docker.sock:ro
+        - proc:/host/proc:ro
+        - cgroup:/host/sys/fs/cgroup:ro
 
 volumes:
   data:
   image:
+  sock:
+  proc:
+  cgroup:
