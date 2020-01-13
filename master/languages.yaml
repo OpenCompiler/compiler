@@ -1,7 +1,7 @@
 language:
   bash:
     name: "Bash"
-    docker_image: "opencompiler/images:bash" 
+    docker_image: "docker.io/opencompiler/images:bash" 
     code_file: "main.sh"
     build_cmd: 
     run_cmd: 
@@ -9,7 +9,7 @@ language:
       - "/run.sh"
   c:
     name: "C"
-    docker_image: "opencompiler/images:c"
+    docker_image: "docker.io/opencompiler/images:c"
     code_file: "main.c"
     build_cmd:
     run_cmd:
@@ -17,7 +17,7 @@ language:
       - "/run.sh"
   cpp:
     name: "C++"
-    docker_image: "opencompiler/images:cpp"
+    docker_image: "docker.io/opencompiler/images:cpp"
     code_file: "main.cpp"
     build_cmd:
     run_cmd:
@@ -25,7 +25,7 @@ language:
       - "/run.sh"
   cpp11:
     name: "C++11"
-    docker_image: "opencompiler/images:cpp"
+    docker_image: "docker.io/opencompiler/images:cpp"
     code_file: "main.cpp"
     build_cmd:
     run_cmd:
@@ -33,7 +33,7 @@ language:
       - "/run.sh"
   cpp14:
     name: "C++14"
-    docker_image: "opencompiler/images:cpp"
+    docker_image: "docker.io/opencompiler/images:cpp"
     code_file: "main.cpp"
     build_cmd:
     run_cmd:
@@ -41,7 +41,7 @@ language:
       - "/run.sh"
   cpp17:
     name: "C++17"
-    docker_image: "opencompiler/images:cpp"
+    docker_image: "docker.io/opencompiler/images:cpp"
     code_file: "main.cpp"
     build_cmd:
     run_cmd:
@@ -49,7 +49,7 @@ language:
       - "/run.sh"
   python:
     name: "Python"
-    docker_image: "opencompiler/images:python3"
+    docker_image: "docker.io/opencompiler/images:python3"
     code_file: "main.py"
     build_cmd:
     run_cmd:
@@ -57,7 +57,7 @@ language:
       - "/run.sh"
   python2:
     name: "Python2"
-    docker_image: "opencompiler/images:python2"
+    docker_image: "docker.io/opencompiler/images:python2"
     code_file: "main.py"
     build_cmd: 
     run_cmd:
@@ -65,7 +65,7 @@ language:
       - "/run.sh"
   php:
     name: "PHP"
-    docker_image: "opencompiler/images:php"
+    docker_image: "docker.io/opencompiler/images:php"
     code_file: "main.php"
     build_cmd:
     run_cmd:
@@ -73,7 +73,7 @@ language:
       - "/run.sh"
   rust:
     name: "Rust"
-    docker_image: "opencompiler/images:rust"
+    docker_image: "docker.io/opencompiler/images:rust"
     code_file: "main.rs"
     build_cmd:
     run_cmd:
@@ -81,7 +81,7 @@ language:
       - "/run.sh"
   golang:
     name: "Golang"
-    docker_image: "opencompiler/images:golang"
+    docker_image: "docker.io/opencompiler/images:golang"
     code_file: "main.go"
     build_cmd:
     run_cmd:
@@ -89,7 +89,7 @@ language:
       - "/run.sh"
   node:
     name: "JavaScript(Node.js)"
-    docker_image: "opencompiler/images:javascript"
+    docker_image: "docker.io/opencompiler/images:javascript"
     code_file: "main.js"
     build_cmd:
     run_cmd:
