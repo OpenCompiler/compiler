@@ -6,10 +6,9 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"encoding/json"
-	"fmt"
+	"flag"
 	"io"
 	"io/ioutil"
-	"log"
 	"net"
 	"net/http"
 	"os"
@@ -22,6 +21,7 @@ import (
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/docker/go-units"
 	"github.com/gin-gonic/gin"
+	"github.com/golang/glog"
 	"golang.org/x/net/context"
 	gintrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/gin-gonic/gin"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
@@ -52,6 +52,7 @@ type Languages struct {
 }
 
 func main() {
+	flag.Parse()
 	addr := net.JoinHostPort(
 		os.Getenv("DD_AGENT_HOST"),
 		os.Getenv("DD_TRACE_AGENT_PORT"),
@@ -63,51 +64,49 @@ func main() {
 	// Read languges setttings
 	buf, err := ioutil.ReadFile("./languages.yaml")
 	if err != nil {
-		fmt.Println(err.Error())
+		glog.Errorf("Cannot read languages file: %s", err.Error())
 	}
 	var lang Languages
 	err = yaml.Unmarshal(buf, &lang)
 	if err != nil {
-		log.Fatal(err)
+		glog.Errorf("Cannot parse languages file: %s", err.Error())
+		return
 	}
-	fmt.Printf("%#v\n", lang)
+	glog.Infof("%#v\n", lang)
 
 	// Create docker client
 	cli, err := client.NewEnvClient()
 	if err != nil {
-		log.Fatal("Cannot create docker client")
+		glog.Errorf("Cannot create docker client: %s", err.Error())
+		return
 	}
 	options := types.ContainerListOptions{All: true}
 
 	for {
-		fmt.Println("Waiting...")
+		glog.Info("Waiting for Docker daemon")
 		ServerVersion, err := cli.ServerVersion(ctx)
 		if err != nil {
-			fmt.Println(err.Error())
+			glog.Errorf("Docker daemon connectivity issue: %s", err.Error())
 			time.Sleep(1 * time.Second)
 			continue
 		}
-		fmt.Println("Docker Daemon: " +  ServerVersion.Version)
+		glog.Info("Docker Daemon: " + ServerVersion.Version)
 
 		ClientVersion := cli.ClientVersion()
-		if err != nil {
-			fmt.Println(err.Error())
-			time.Sleep(1 * time.Second)
-			continue
-		}
-		fmt.Println("Docker Client: " +  ClientVersion)
+		glog.Info("Docker Client: " + ClientVersion)
 		break
 	}
 	// Pull using images
 	timeout := time.Duration(1 * time.Second)
 	if _, err := net.DialTimeout("tcp", "hub.docker.com:80", timeout); err != nil {
-		log.Println("Site unreachable, error: ", err)
+		glog.Errorf("Site unreachable, error: %s", err.Error())
 	} else {
 		for _, v := range lang.Language {
-			fmt.Println(v.DockerImage)
+			glog.Infof("Pulling %s", v.DockerImage)
 			res, err := cli.ImagePull(ctx, v.DockerImage, types.ImagePullOptions{})
 			if err != nil {
-				log.Fatal(err)
+				glog.Fatal(err)
+				glog.Errorf("Cannot pull image %s: %s", v.DockerImage, err.Error())
 			}
 			io.Copy(os.Stdout, res)
 		}
@@ -129,7 +128,7 @@ func main() {
 	r.GET("/node", func(c *gin.Context) {
 		containers, err := cli.ContainerList(ctx, options)
 		if err != nil {
-			log.Print(err)
+			glog.Errorf("Cannot fetch container list: %s", err)
 			c.String(http.StatusInternalServerError, err.Error())
 		}
 		c.JSON(http.StatusOK, gin.H{
@@ -143,11 +142,29 @@ func main() {
 		bufbody.ReadFrom(r.Body)
 		body := bufbody.Bytes()
 		if err := json.Unmarshal(body, &query); err == nil {
+			// Check Request
+			if query.Language == "" {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write([]byte("language is empty"))
+				glog.Warningf("language is empty")
+				return
+			}
+			if query.Language == "" {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write([]byte("code is empty"))
+				glog.Warningf("code is empty")
+				return
+			}
+
 			// Make hash
 			h := md5.New()
 			io.WriteString(h, query.Language)
 			io.WriteString(h, query.Code)
 			runningHash := hex.EncodeToString(h.Sum(nil))
+			glog.Infof("query.Language: %s", query.Language)
+			glog.Infof("query.Code: %s", query.Code)
+			glog.Infof("runningHash: %s", runningHash)
+
 			// Check exist of source code and builded image
 			_, err = os.Stat("/tmp/compiler/" + runningHash + "/" + lang.Language[query.Language].CodeFile)
 			if err != nil {
@@ -157,14 +174,15 @@ func main() {
 					if err := os.MkdirAll("/tmp/compiler/"+runningHash, 0755); err != nil {
 						w.WriteHeader(http.StatusInternalServerError)
 						w.Write([]byte(err.Error()))
-						fmt.Println(err.Error())
+						glog.Errorf("Cannot mkdir /tmp/compiler/%s: %s", runningHash, err.Error())
 						return
 					}
+					glog.Infof("lang.Language[query.Language].CodeFile: %s", lang.Language[query.Language].CodeFile)
 					fp, err := os.OpenFile("/tmp/compiler/"+runningHash+"/"+lang.Language[query.Language].CodeFile, os.O_WRONLY|os.O_CREATE, 0644)
 					if err != nil {
 						w.WriteHeader(http.StatusInternalServerError)
 						w.Write([]byte(err.Error()))
-						fmt.Println(err.Error())
+						glog.Errorf("Cannot create codefile /tmp/compiler/%s/%s: %s", runningHash, lang.Language[query.Language].CodeFile, err.Error())
 						return
 					}
 					defer fp.Close()
@@ -173,7 +191,7 @@ func main() {
 					if err != nil {
 						w.WriteHeader(http.StatusInternalServerError)
 						w.Write([]byte(err.Error()))
-						fmt.Println(err.Error())
+						glog.Errorf("Cannot create WriteString: %s", err.Error())
 						return
 					}
 					writer.Flush()
@@ -185,6 +203,8 @@ func main() {
 
 			// Create container
 			// TODO: Limit container spec
+			glog.Infof("lang.Language[query.Language].DockerImage: %s", lang.Language[query.Language].DockerImage)
+			glog.Infof("lang.Language[query.Language].RunCmd: %s", lang.Language[query.Language].RunCmd)
 			resp, err := cli.ContainerCreate(ctx, &container.Config{
 				Image:           lang.Language[query.Language].DockerImage,
 				WorkingDir:      "/workspace",
@@ -230,7 +250,7 @@ func main() {
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte(err.Error()))
-				fmt.Println(err.Error())
+				glog.Errorf("Cannot create container: %s", err.Error())
 				return
 			}
 
@@ -243,7 +263,7 @@ func main() {
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte(err.Error()))
-				fmt.Println(err.Error())
+				glog.Errorf("Cannot attach container with stdin: %s", err.Error())
 				return
 			}
 
@@ -256,7 +276,7 @@ func main() {
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte(err.Error()))
-				fmt.Println(err.Error())
+				glog.Errorf("Cannot attach container output: %s", err.Error())
 				return
 			}
 
@@ -265,7 +285,7 @@ func main() {
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte(err.Error()))
-				fmt.Println(err.Error())
+				glog.Errorf("Cannot start container: %s", err.Error())
 				return
 			}
 
@@ -278,11 +298,13 @@ func main() {
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte(err.Error()))
-				fmt.Println(err.Error())
+				glog.Errorf("Cannot StdCopy: %s", err.Error())
 				return
 			}
 		} else {
-			//c.String(http.StatusBadRequest, err.Error())
+			glog.Warningf("Cannot parse request: %s", err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
 		}
 	}))
 	r.Run()

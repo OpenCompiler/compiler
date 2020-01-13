@@ -18,6 +18,7 @@ services:
         max-file: "3"
   api:
     build: master
+    #command: /main -stderrthreshold=INFO
     restart: always
     ports:
       - 3000:8080
