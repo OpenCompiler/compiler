@@ -80,12 +80,23 @@ func main() {
 	options := types.ContainerListOptions{All: true}
 
 	for {
-		ver, err := cli.ServerVersion(ctx)
-		if err == nil {
-			fmt.Println(ver.Version)
-			break
+		fmt.Println("Waiting...")
+		ServerVersion, err := cli.ServerVersion(ctx)
+		if err != nil {
+			fmt.Println(err.Error())
+			time.Sleep(1 * time.Second)
+			continue
 		}
-		time.Sleep(1 * time.Second)
+		fmt.Println("Docker Daemon: " +  ServerVersion.Version)
+
+		ClientVersion := cli.ClientVersion()
+		if err != nil {
+			fmt.Println(err.Error())
+			time.Sleep(1 * time.Second)
+			continue
+		}
+		fmt.Println("Docker Client: " +  ClientVersion)
+		break
 	}
 	// Pull using images
 	timeout := time.Duration(1 * time.Second)
@@ -93,6 +104,7 @@ func main() {
 		log.Println("Site unreachable, error: ", err)
 	} else {
 		for _, v := range lang.Language {
+			fmt.Println(v.DockerImage)
 			res, err := cli.ImagePull(ctx, v.DockerImage, types.ImagePullOptions{})
 			if err != nil {
 				log.Fatal(err)

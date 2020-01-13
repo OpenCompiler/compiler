@@ -8,6 +8,10 @@ services:
       - data:/tmp
       - /tmp/docker/containers:/var/lib/docker/containers
       - image:/var/lib/docker
+      - certs-ca:/certs/ca
+      - certs-cli:/certs/client
+    environment:
+      - DOCKER_TLS_CERTDIR=/certs
     logging:
       options:
         max-size: "10m"
@@ -20,10 +24,15 @@ services:
     links:
       - docker
     environment:
-      - DOCKER_HOST=tcp://docker:2375
+      - DOCKER_HOST=tcp://docker:2376
+      - DOCKER_TLS_CERTDIR=/certs
+      - DOCKER_TLS_VERIFY=1
+      - DOCKER_CERT_PATH=/certs/client
     env_file: ./master/.env
     volumes:
         - data:/tmp
+        - certs-ca:/certs/ca:ro
+        - certs-cli:/certs/client:ro
     logging:
       options:
         max-size: "10m"
@@ -32,3 +41,5 @@ services:
 volumes:
   data:
   image:
+  certs-ca:
+  certs-cli:
